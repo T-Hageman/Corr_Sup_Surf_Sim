@@ -1,9 +1,10 @@
 classdef OxygenLimiter < BaseModel
-    %Constrains specified degrees of freedom, input example
-% 		physics_in{4}.type = "Constrainer";   %name of this model
-%		physics_in{4}.Egroup = "M_Bottom";		%name of element group to constrain
-%		physics_in{4}.dofs = {"dy"};			%name of degree of freedom to constrain
-%		physics_in{4}.conVal = [0];				%value it should be constrained to
+    %Constrains specified degrees of freedom up to a set time, input example
+	%	physics_in{3}.type = "OxygenLimiter";
+	%	physics_in{3}.Egroup = "E_Top";
+	%	physics_in{3}.dofs = {"O2"}; %Name of degree of freedom
+	%	physics_in{3}.conVal = [initO2];	%value of oxygen constraint
+	%	physics_in{3}.tmax = 48*3600;	%time after which constraint is removed
     
     properties
         myName			%name of this model
@@ -14,7 +15,7 @@ classdef OxygenLimiter < BaseModel
         dofTypeIndices	%index of constrained dofs
         
         conVal			%value to constrain degrees of freedom to
-		tmax
+		tmax			%Time untill constraint is removed
     end
     
     methods
@@ -42,10 +43,9 @@ classdef OxygenLimiter < BaseModel
             	
 				for i=1:length(obj.dofTypeIndices)
                 	newcons = obj.dofSpace.getDofIndices(obj.dofTypeIndices(i), allNodes);
-					scale = obj.dofSpace.getScale(obj.dofTypeIndices(i));
                 	
                 	physics.condofs = [physics.condofs; newcons];
-                	physics.convals = [physics.convals; newcons*0+obj.conVal(i)/scale];
+                	physics.convals = [physics.convals; newcons*0+obj.conVal(i)];
 				end
 			end
         end

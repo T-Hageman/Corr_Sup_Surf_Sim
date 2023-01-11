@@ -29,7 +29,7 @@ function Solve(obj)
             d = -R*P*obj.physics.fint;
             B = R*P*obj.physics.K*C;
 
-			if true
+			if false
 				dy = B\d;
 			else
 				try

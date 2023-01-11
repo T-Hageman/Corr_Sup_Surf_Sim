@@ -66,13 +66,13 @@ classdef Electrolyte < BaseModel
         end
         
         function getKf(obj, physics)
+			% Force vector and tangential matrix assembly procedure
             fprintf("        Electrolyte get Matrix:")
             t = tic;
             
             dt = physics.dt;
 
 			if (obj.DoOnce) %set-up required to be erformed once
-
 				%set initial values
 				dofsE = obj.dofSpace.getDofIndices(obj.dofTypeIndices(1), obj.mesh.GetAllNodesForGroup(obj.myGroupIndex));
 				for i=1:obj.n_species
@@ -91,7 +91,6 @@ classdef Electrolyte < BaseModel
 					physics.StateVec(dofsC(:,i)) = initState(i);	
 					physics.StateVec_Old(dofsC(:,i)) = initState(i);
 				end
-
 				obj.DoOnce = false;
 			end
 			clear dofsC dofsE
@@ -237,15 +236,6 @@ classdef Electrolyte < BaseModel
 						drw_dH  = rwc*(-(max(phlim,C(i,2))));
 						drw_dOH = rwc*(-(max(phlim,C(i,1))));
 
-% 						if (C(i,1)<phlim)
-% 							rw = rw + (phlim*1.1-C(i,1))*kdum;
-% 							drw_dH = drw_dH - kdum;
-% 						end
-% 						if (C(i,2)<phlim)
-% 							rw = rw + (phlim*1.1-C(i,2))*kdum;
-% 							drw_dOH = drw_dOH - kdum;
-% 						end
-
 						q_C(i,1) = q_C(i,1) - C_Lumped(i)*rw;
 						q_C(i,2) = q_C(i,2) - C_Lumped(i)*rw;
 	
@@ -325,7 +315,9 @@ classdef Electrolyte < BaseModel
             fprintf("            (Assemble time:"+string(tElapsed)+")\n");
 		end
 
-		function plotFields(obj, physics) %function which plots concentrations and pH
+		function plotFields(obj, physics) 
+			%function which plots concentrations and pH
+
 			for el=1:size(obj.mesh.Elementgroups{obj.myGroupIndex}.Elems, 1)
                 elnodes =physics.mesh.Elementgroups{obj.myGroupIndex}.Elems(el,:);
 				Edofs = physics.dofSpace.getDofIndices(obj.dofTypeIndices(1), elnodes);
@@ -337,7 +329,7 @@ classdef Electrolyte < BaseModel
                 X(el,:) = physics.mesh.Nodes(elnodes(order),1);
                 Y(el,:) = physics.mesh.Nodes(elnodes(order),2);
                 H(el,:) = physics.StateVec(Cdofs(order,1));
-				OH(el,:) = physics.StateVec(Cdofs(order,2));%
+				OH(el,:) = physics.StateVec(Cdofs(order,2));
 				FE(el,:) = physics.StateVec(Cdofs(order,5));
 				FEOH(el,:) = physics.StateVec(Cdofs(order,6));
 				O(el,:) = physics.StateVec(Cdofs(order,7));

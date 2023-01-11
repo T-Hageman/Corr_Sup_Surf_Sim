@@ -1,27 +1,24 @@
 classdef ElectrolyteInterface < BaseModel
-    %Implements hydrogen mass balance at a metal-electrolyte interface,
-	%adds the relevant reactions, and applies the ion and lattice hydrogen
-	%fluxes to the neighbouring domains. Input example:
-	% 	physics_in{9}.type = "ElectrolyteInterface";      %name of this model
-	% 	physics_in{9}.Egroup = "Interface"; %element group that represents the interface
-	% 	physics_in{9}.NAds = 1e-3;      %number of absorbtion sites
-	% 	physics_in{9}.k = [	1e-4,	1e-10,	0.5,	0; 
-	% 						1e-10,	0,		0.3,	0;
-	% 						1e-6,	0,		0,		0;
-	% 						1e3,	7e7,	0,		0; 
-	% 						1e-8,	1e-13,	0.5,	0;
-	% 						8e-10,	0,	0.3,	0;
-	% 						3e-7/(2*96485.3329), 0, 0, -0.4]; %reaction rates (forward,backward, alpha, e_eq)
-	% 	physics_in{9}.NL = 1e6; %number of lattice sites in metal
-	% 	physics_in{9}.Em = -1.0; %metal electropotential
-	% 	physics_in{9}.Lumped = [1 1 1 1 1 1 1]; %flags for whether to use lumped integration
+    %Implements hydrogen and oxygen reactions at a cathodic,
+	% and corrosion reactions at an anodic surface, also has the ability to
+	% enforce charge conservation. Input example:
+	%physics_in{2}.type = "ElectrolyteInterface";
+	%physics_in{2}.Anode = "Anode";
+	%physics_in{2}.Cathode = "Cathode";
+	%physics_in{2}.k = [	1e-1/F_const,	1e-1/F_const,	0.5,	-0.4;  % Fe <-> Fe2+ (anode)
+	%					1e-4/F_const,	1e-6/F_const,	0.5,	0;     % H+ <->H2    (cathode)
+	%					1e-6/F_const,	1e-6/F_const,	0.5,	0.4;   % O2 <->OH-   (cathode)
+	%					]; %reaction constants k, k', alpha, E_eq
+	%physics_in{2}.ChargeConserve = true; %Enforce charge-conservation conditions
+	%physics_in{2}.Em = 0;	%Metal potential (unused if chargeconserve=true
+	%physics_in{2}.Lumped = [1 1 1];	%Use lumped integration to stabilise surface reactions?
     
     properties
         mesh			%pointer to mesh
         myName			%name of this model
-        AnodeGroup			%name of the element group associated with this model
+        AnodeGroup		%name of the element group associated with this model
         AnodeGroupIndex	%index of element group
-		CathodeGroup			%name of the element group associated with this model
+		CathodeGroup		%name of the element group associated with this model
         CathodeGroupIndex	%index of element group
         dofSpace		%pointer to degrees of freedom
         dofTypeIndices %vector containing the dof numbers associated with this model
@@ -77,6 +74,8 @@ classdef ElectrolyteInterface < BaseModel
         end
         
         function getKf(obj, physics)
+			% Force vector and tangential matrix assembly procedure
+
             fprintf("        ElectrolyteInterface get Matrix:")
             t = tic;
             
@@ -105,7 +104,7 @@ classdef ElectrolyteInterface < BaseModel
 			Svec = physics.StateVec;
             SvecOld = physics.StateVec_Old;
 
-			for AC=1:2
+			for AC=1:2 %perform for both surfaces
 				if AC==1
 					Group = obj.AnodeGroupIndex;
 					surface = "Anode";
@@ -280,6 +279,7 @@ classdef ElectrolyteInterface < BaseModel
 		end
 
 		function [rout1,rout2,rout3,xout,Eout] = ReactionsVsX(obj, physics)
+			%returns the local reaction rates at the surface
 			xout = [];
 			rout1 = [];
 			rout2 = [];
@@ -350,6 +350,8 @@ classdef ElectrolyteInterface < BaseModel
 		end
 
 		function plotReactions(obj, physics) %plots surface reactions
+			%plots reaction rates for individual reactions (plotting
+			%performed based on integration-point reaction rates)
 
 			cnt=0;
 			for AC=1:2
@@ -395,7 +397,7 @@ classdef ElectrolyteInterface < BaseModel
 					Eplot(cnt,4) = NaN;
 				end
 			end
-            %patch(X',Y',Z','EdgeColor','None','FaceColor','interp');
+            %Iron
 			subplot(2,2,1)
 			fill3(X',Y',r(:,:,1)',r(:,:,1)','FaceColor','interp','EdgeColor','interp','LineWidth',3);
 			title("\nu_{Fe}")
@@ -403,6 +405,7 @@ classdef ElectrolyteInterface < BaseModel
 			hold on
 			colorbar
 
+			%Hydrogen
 			subplot(2,2,2)
 			fill3(X',Y',r(:,:,2)',r(:,:,2)','FaceColor','interp','EdgeColor','interp','LineWidth',3);
 			title("\nu_{H}")
@@ -410,6 +413,7 @@ classdef ElectrolyteInterface < BaseModel
 			hold on
 			colorbar
 				
+			%Oxygen
 			subplot(2,2,3)
 			fill3(X',Y',r(:,:,3)',r(:,:,3)','FaceColor','interp','EdgeColor','interp','LineWidth',3);
 			title("\nu_{O2}")
@@ -417,6 +421,7 @@ classdef ElectrolyteInterface < BaseModel
 			hold on
 			colorbar
 
+			%Overpotential
 			subplot(2,2,4)
 			fill3(X',Y',Eplot',Eplot','FaceColor','interp','EdgeColor','interp','LineWidth',3);
 			title("\E_m-\varphi")

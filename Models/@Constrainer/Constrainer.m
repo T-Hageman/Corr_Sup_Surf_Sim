@@ -34,14 +34,17 @@ classdef Constrainer < BaseModel
         end
         
         function getKf(obj, physics)
+			% saves constraints to constraint object contained within the
+			% physics. This does not directly apply the constraints, they
+			% are merely collected, after which the physics object does the
+			% actual contraining 
+
             allNodes = obj.mesh.GetAllNodesForNodeGroup(obj.myGroupIndex);
-            
             for i=1:length(obj.dofTypeIndices)
                 newcons = obj.dofSpace.getDofIndices(obj.dofTypeIndices(i), allNodes);
-				scale = obj.dofSpace.getScale(obj.dofTypeIndices(i));
                 
                 physics.condofs = [physics.condofs; newcons];
-                physics.convals = [physics.convals; newcons*0+obj.conVal(i)/scale];
+                physics.convals = [physics.convals; newcons*0+obj.conVal(i)];
             end
         end
     end
