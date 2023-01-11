@@ -1,20 +1,19 @@
 classdef T6
-    %Q9 Summary of this class goes here
-    %   Detailed explanation goes here
+    %T6 quadratic 6 node Lagrangian triangle element
     
     properties
-        ipcount1D
-        ipcount
+        ipcount1D % number of integration points per direction
+        ipcount % total number of integration points
         
-        rectangular
+        rectangular % == false
+
+        Nbase   % basis functions; ip, shapefunc
+        Gbase   % basis function derivatives; ip, shapefunc, dx/dy
+		G2base  % basis function second derivatives; ip, shapefunc, dxx/dyy/dxy
         
-        Nbase   % ip, shapefunc
-        Gbase   % ip, shapefunc, dx/dy
-		G2base  % ip, shapefunc, dxx/dyy/dxy
-        
-        wbase   % ip
-        xbase   % ip
-        ybase   % ip
+        wbase   % integration point weights; ip
+        xbase   % ntegration point coordiantes; ip
+        ybase   % ntegration point coordiantes; ip
     end
     
     methods
@@ -66,6 +65,9 @@ classdef T6
         end
         
         function [N, G, w] = getVals(obj, X, Y)
+			% Get shape function values, gradients, and accompanying
+			% integration weights, providing the nodal coordinate vectors X
+			% and Y
             N = obj.Nbase;
             
             dXdXi = obj.Gbase(:,:,1)*X; dXdEta = obj.Gbase(:,:,2)*X;
@@ -88,6 +90,8 @@ classdef T6
 		end
 
 		function G2 = getG2(obj, X, Y)
+			% Get shape function Second derivatives, 
+			% providing the nodal coordinate vectors X and Y
             G2 = 0*obj.G2base;
             
             dXdXi = obj.Gbase(:,:,1)*X; dXdEta = obj.Gbase(:,:,2)*X;
@@ -134,17 +138,9 @@ classdef T6
         end
         
         function xy = getIPGlobal(obj, X,Y)
-            
+            % Get global coordinates for integration points
 			xy(1,:) = obj.Nbase*X;
 			xy(2,:) = obj.Nbase*Y;
-
-%             if obj.rectangular 
-%                 xy(1,:) = X(1) + (0.5*(obj.xbase+1))*(X(3)-X(1));
-%                 xy(2,:) = Y(1) + (0.5*(obj.ybase+1))*(Y(7)-Y(1));
-%             else
-%                 %% not implemented
-%             end
-
         end
  
     end
@@ -152,6 +148,7 @@ classdef T6
     
     methods (Access = private)
         function [x, w] = getIpscheme(obj, ipcount1D, zeroWeight)
+			% Gauss integration scheme
             if (ipcount1D == 1)
                 x = [1/3, 1/3];
                 w = 0.5;
@@ -163,35 +160,7 @@ classdef T6
                 w = [-27/48; 25/48; 25/48; 25/48]*0.5;                     
             else
                 error("Higer order ip schemes not implemented in Shapes.Q9");
-            end
-% 			N = ipcount1D;
-% 			v = [0 0; 0 1; 1 0];
-% 
-% 			n=1:N;  nnk=2*n+1; A=[1/3 repmat(1,1,N)./(nnk.*(nnk+2))];
-% 			n=2:N; nnk=nnk(n); B1=2/9; nk=n+1; nnk2=nnk.*nnk;
-% 			B=4*(n.*nk).^2./(nnk2.*nnk2-nnk2); ab=[A' [2; B1; B']]; s=sqrt(ab(2:N,2));
-% 			[V,X]=eig(diag(ab(1:N,1),0)+diag(s,-1)+diag(s,1));
-% 			[X,I]=sort(diag(X)); x=(X+1)/2; wx=ab(1,2)*V(1,I)'.^2/4;
-% 			N=N-1; N1=N+1; N2=N+2;  y=cos((2*(N:-1:0)'+1)*pi/(2*N+2));
-% 			L=zeros(N1,N2);  y0=2;  iter=0;
-% 			while max(abs(y-y0))>eps    
-%     			L(:,1)=1;    L(:,2)=y;   
-%     			for k=2:N1
-%         			L(:,k+1)=( (2*k-1)*y.*L(:,k)-(k-1)*L(:,k-1) )/k;
-%     			end
-%     			Lp=(N2)*( L(:,N1)-y.*L(:,N2) )./(1-y.^2);   
-%     			y0=y;    y=y0-L(:,N2)./Lp;  iter=iter+1;
-% 			end
-% 			cd=[ 1, 0, 0; -1, 0, 1; 0, 1,-1]*v; 
-% 			t=(1+y)/2;  Wx=abs(det(cd(2:3,:)))*wx;  Wy=1./((1-y.^2).*Lp.^2)*(N2/N1)^2;
-% 			[tt,xx]=meshgrid(t,x); yy=tt.*xx;
-% 			X=cd(1,1)+cd(2,1)*xx+cd(3,1)*yy;    Y=cd(1,2)+cd(2,2)*xx+cd(3,2)*yy;
-% 			W=Wx*Wy';
-% 
-% 			clear x;
-% 			x(:,1)=X(:);
-% 			x(:,2)=Y(:);
-% 			w = W(:);
+			end
             
             if (zeroWeight)
                x = [x; 0, 0; 0, 1; 1, 0];

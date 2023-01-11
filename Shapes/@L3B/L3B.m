@@ -1,22 +1,22 @@
 classdef L3B
-    %L3B Summary of this class goes here
-    %   Detailed explanation goes here
+    %L3B 3 node Bernstein shape function
     
     properties
-        ipcount1D
-        ipcount
+        ipcount1D % number of integration points per direction
+        ipcount % total number of integration points
         
-        rectangular
+        rectangular % element is strictly rectangular (straight line in x or y)
         
-        Nbase
-        Gbase
+        Nbase % basis functions
+        Gbase % basis function derivatives
         
-        wbase
-        xbase
+        wbase % integration point weights
+        xbase % integration point coordiantes
     end
     
     methods
         function obj = L3B(ipcount1D, rect, zeroWeight)
+			% Initializations 
             [x1D, w1D] = obj.getIpscheme(ipcount1D, zeroWeight);
             
             if (zeroWeight)
@@ -48,6 +48,10 @@ classdef L3B
         end
         
         function [N, G, w] = getVals(obj, X, Y)
+			% Get shape function values, gradients, and accompanying
+			% integration weights, providing the nodal coordinate vectors X
+			% and Y
+
             N = obj.Nbase;
             
             if obj.rectangular 
@@ -67,6 +71,9 @@ classdef L3B
         end
         
         function [n, t] = getNormals(obj, X, Y)
+			% Get surface normal vector n and tangential vector t for all
+			% integration points
+
             if obj.rectangular 
                 dx = X(3)-X(1);
                 dy = Y(3)-Y(1);
@@ -85,7 +92,7 @@ classdef L3B
         end
         
         function xy = getIPGlobal(obj, X,Y)
-            
+            % Get global coordinates for integration points
             if obj.rectangular 
                 xy(1,:) = X(1) + ((obj.xbase))*(X(3)-X(1));
                 xy(2,:) = Y(1) + ((obj.xbase))*(Y(3)-Y(1));
@@ -101,6 +108,7 @@ classdef L3B
     
     methods (Access = private)
         function [x1D, w1D] = getIpscheme(obj, ipcount1D, zeroWeight)
+			% Gauss integration scheme
             if (ipcount1D == 1)
                 x1D = 0;
                 w1D = 2;

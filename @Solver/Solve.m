@@ -1,31 +1,34 @@
 function Solve(obj)
+	%SOLVE solves a single time increment for the nonlinear system of
+	%equations through a Newton-Raphson procedure
 
     stop = false;
     it = 0;
-
-	%stepnum = size(obj.convergence_log, 1)+1;
-	%cf = figure(9731);
  
+	%assemble the stiffness matrix, force vector, and apply the constraints
     obj.physics.Assemble();
     obj.physics.Constrain();
+
     recalc_pre=true;
     En_err0 = -1;
     curr_max_it = obj.maxIt;
-    while(stop == false)
+    while(stop == false) %loop untill convergence criterion are fulfilled, or max is exceeded
 
         fprintf("    Solving it:" + string(it) + "      ");
         tsolve = tic;
         
+		%matrix preconditioning 
         recalc_pre = true;
         if (recalc_pre)
             [P,R,C] = equilibrate(obj.physics.K);
             recalc_pre = false;
         end
 
+		%solve linear system
         if true
             d = -R*P*obj.physics.fint;
             B = R*P*obj.physics.K*C;
-			%cond_num(it+1)=condest(B);
+
 			if true
 				dy = B\d;
 			else
@@ -42,8 +45,9 @@ function Solve(obj)
         end
         tsolve = toc(tsolve);
         fprintf("        (Solver time:"+string(tsolve)+")\n");
-		%fprintf("Conditioning numbers: "+string(cond_num(it+1))+"\n");
 
+		%perform linear line-search, otherwise just add increment to state
+		%vector
         if (obj.linesearch && it>0)
             e0 = obj.physics.fint'*dx;
             obj.physics.Update(dx);
@@ -60,9 +64,11 @@ function Solve(obj)
             obj.physics.Update(dx);
         end
         
-        % convergence
+        % re-assemble system for new state
         obj.physics.Assemble();
         obj.physics.Constrain();
+
+		% convergence criterion check
         if (En_err0 < 0)
             En_err0 = sum(abs(obj.physics.fint.*dx));
             En_err = En_err0;
@@ -74,11 +80,9 @@ function Solve(obj)
             En_err = sum(abs(obj.physics.fint.*dx));
         end
         En_err_n = En_err/En_err0;
-
-		%obj.convergence_log(stepnum,it+1) = En_err_n;
-                    
         fprintf("    Residual:" + string(En_err_n) + "   ("+string(En_err)  +") \n");
         
+		%determine whether to continue or exit solver loop
         it=it+1;
         if (it>curr_max_it || En_err_n<obj.Conv || En_err<obj.tiny)
             obj.physics.Commit("Pathdep");
@@ -95,10 +99,7 @@ function Solve(obj)
         end
     end
     
+	%commit time step state and history-dependent variables
     obj.physics.Commit("Timedep");
-    %figure(9731);
-	%semilogy(obj.convergence_log(stepnum,1:it));
-	%hold on
-	%drawnow();
 end
 

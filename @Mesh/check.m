@@ -1,4 +1,7 @@
 function check(obj)
+	%CHECK Calculate the area of the mesh and print it to confirm shape
+	%functions for all elements can be evaluated, and (manually) confirm
+	%that the total mesh area is correct
 
     disp("Checking mesh");
 
@@ -9,11 +12,9 @@ function check(obj)
 			ipcoords = obj.getIPCoords(g, ielem);
 			w = w.*2.*pi.*ipcoords(1,:);
             newArea(g) = newArea(g) + sum(w);
-        end
-        
+		end
         disp("    "+obj.Elementgroups{g}.name+ ": Old Area: "+string(obj.Area(g))+"    new Area: "+string(newArea(g)))
     end
-
 
     obj.Area = newArea;
 end

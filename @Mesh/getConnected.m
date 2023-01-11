@@ -1,4 +1,5 @@
 function elems = getConnected(obj, groupname, node)
+	%GETCONNECTED Obtains elements connected to a given node
 
     groupnum = obj.getGroupIndex(groupname);
     [elem_ind,~] = find(obj.Elementgroups{groupnum}.Elems==node);

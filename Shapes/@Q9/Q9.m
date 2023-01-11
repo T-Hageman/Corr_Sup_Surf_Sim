@@ -1,24 +1,23 @@
 classdef Q9
-    %Q9 Summary of this class goes here
-    %   Detailed explanation goes here
+    %Q9 9 node, square, quadratic surface element
     
     properties
-        ipcount1D
-        ipcount
+        ipcount1D % number of integration points per direction
+        ipcount % total number of integration points
         
-        rectangular
+        rectangular % element is strictly rectangular
         
-        Nbase   % ip, shapefunc
-        Gbase   % ip, shapefunc, dx/dy
+        Nbase   % basis functions; ip, shapefunc
+        Gbase   % basis function derivatives; ip, shapefunc, dx/dy
         
-        wbase   % ip
-        xbase   % ip
-        ybase   % ip
+        wbase   % integration point weights; ip
+        xbase   % ntegration point coordiantes; ip
+        ybase   % ntegration point coordiantes; ip
     end
     
     methods
         function obj = Q9(ipcount1D, rect, zeroWeight)
-
+			% Initializations 
             [x1D, w1D] = obj.getIpscheme(ipcount1D, zeroWeight);
             
             if (zeroWeight)
@@ -68,13 +67,17 @@ classdef Q9
         end
         
         function [N, G, w] = getVals(obj, X, Y)
+			% Get shape function values, gradients, and accompanying
+			% integration weights, providing the nodal coordinate vectors X
+			% and Y
+
             N = obj.Nbase;
             
             if obj.rectangular 
             	G(:,:,1) = obj.Gbase(:,:,1)*2/(X(3)-X(1));
             	G(:,:,2) = obj.Gbase(:,:,2)*2/(Y(7)-Y(1));
                 w = obj.wbase * (X(3)-X(1))/2 * (Y(7)-Y(1))/2;
-            else %% probably requires correcting
+            else 
                 dXdXi = obj.Gbase(:,:,1)*X; dXdEta = obj.Gbase(:,:,2)*X;
                 dYdXi = obj.Gbase(:,:,1)*Y; dYdEta = obj.Gbase(:,:,2)*Y;
 
@@ -96,6 +99,7 @@ classdef Q9
         end
         
         function xy = getIPGlobal(obj, X,Y)
+			% Get global coordinates for integration points
             
             if obj.rectangular 
                 xy(1,:) = X(1) + (0.5*(obj.xbase+1))*(X(3)-X(1));
@@ -111,6 +115,7 @@ classdef Q9
     
     methods (Access = private)
         function [x1D, w1D] = getIpscheme(obj, ipcount1D, zeroWeight)
+			% Gauss integration scheme
             if (ipcount1D == 1)
                 x1D = 0;
                 w1D = 2;
@@ -138,4 +143,3 @@ classdef Q9
         end
     end
 end
-

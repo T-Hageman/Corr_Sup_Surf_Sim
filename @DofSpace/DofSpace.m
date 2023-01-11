@@ -1,30 +1,31 @@
 classdef DofSpace < handle
-    %DOFSPACE Summary of this class goes here
-    %   Detailed explanation goes here
+    %DOFSPACE Management of degrees of freedom
+    %   Class which keeps track of added degrees of freedom, giving index
+	%   of dof for a dof name, and location for a combination of index and
+	%   node.
     
     properties
-        mesh
-        DofTypes
-        DofNumbering   %node, dofType
-        NDofs
-		Scales
-		ScalesF
+        mesh		%pointer to mesh object
+        DofTypes	%String vector containing names of each dof type
+        DofNumbering   %node, dofType -> dofnumber
+        NDofs		%total amout of degrees of freedom
     end
     
     methods
         function obj = DofSpace(mesh)
             %DOFSPACE Construct an instance of this class
-            %   Detailed explanation goes here
             
             obj.mesh = mesh;
             obj.DofTypes = {};
             obj.NDofs = 0;
-			obj.Scales = [];
-			obj.ScalesF = [];
             obj.DofNumbering = sparse(length(obj.mesh.Nodes), length(obj.DofTypes));
         end
         
         function dofIndex = addDofType(obj, dofnames)
+			% registers the name of the degree of freedom and returns its
+			% index. If it already exists doesn't register it anew and
+			% solely returns the index
+
             dofIndex = zeros(length(dofnames),1);
             dofTypeCount = length(obj.DofTypes);
             
@@ -41,16 +42,14 @@ classdef DofSpace < handle
                    obj.DofTypes{dofTypeCount} = dofnames{i};
                    dofIndex(i) = dofTypeCount;
                    obj.DofNumbering(:,length(obj.DofTypes)) = 0;
-				   obj.Scales = [obj.Scales; 1];
-				   obj.ScalesF = [obj.ScalesF; 1];
                end
-            end
-            
-            
+			end
         end
         
 
         function addDofs(obj, dofIndices, nodeIndex)
+			% Adds degrees of freedom for type "dofIndices" to the nodes
+			% "nodeIndex"
             for i=1:length(dofIndices)
                 for k=1:length(nodeIndex)
                     if (nodeIndex(k)<=size(obj.DofNumbering, 1))
@@ -68,6 +67,8 @@ classdef DofSpace < handle
         end
         
         function DofTypeIndex = getDofType(obj, dofnames)
+			% returns the dof type index for pre-existing degrees of
+			% freedom
             DofTypeIndex = zeros(length(dofnames),1);
             for i=1:length(dofnames)
                for j=1:length(obj.DofTypes)
@@ -79,31 +80,13 @@ classdef DofSpace < handle
         end
         
         function DofIndices = getDofIndices(obj, dofType, NodeIndices)
-           
+           % gets the indices for a combination of degree of freedom
+		   % "doftype" and nodes "NodeIndices"
            DofIndices = obj.DofNumbering(NodeIndices, dofType);
            if (length(find(DofIndices==0)) ~= 0)
               disp("error here (dofspace)") 
            end
 		end
 
-		function scale = getScale(obj, dofType)
-			scale = obj.Scales(dofType);
-		end
-
-		function setScale(obj, dofnames, value)
-			typenums = obj.getDofType(dofnames);
-			obj.Scales(typenums) = value;
-		end
-
-		function scale = getScaleF(obj, dofType)
-			scale = obj.ScalesF(dofType);
-		end
-
-		function setScaleF(obj, dofnames, value)
-			typenums = obj.getDofType(dofnames);
-			obj.ScalesF(typenums) = value;
-		end
-
     end
 end
-

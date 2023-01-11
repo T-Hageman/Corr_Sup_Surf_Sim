@@ -1,4 +1,7 @@
 function PlotNodal(obj, dofName, dispscale, plotloc)
+	%Plot nodal data for element group with the name plotloc, for a provided string indicating the dof name, and
+	%deforming the plotted results based on the displacemenets with scale
+	%dispscale
     dxTypes = obj.dofSpace.getDofType({"dx";"dy";dofName});
 
 
