@@ -275,7 +275,7 @@ classdef ElectrolyteInterface < BaseModel
 
             tElapsed = toc(t);
             fprintf("            (Assemble time:"+string(tElapsed)+")\n");
-			fprintf("Em: " +string(obj.Em)+ "  \n Anodic Current: " +string(obj.I_anode)+ "  \n Cathodic Current: "+string(obj.I_Cathode1+obj.I_Cathode2) +"\n Mismatch: "+string(obj.I_anode+obj.I_Cathode1++obj.I_Cathode2)+"\n")
+			fprintf("            Em: " +string(obj.Em)+ "  \n            Anodic Current: " +string(obj.I_anode)+ "  \n            Cathodic Current: "+string(obj.I_Cathode1+obj.I_Cathode2) +"\n            Mismatch: "+string(obj.I_anode+obj.I_Cathode1++obj.I_Cathode2)+"\n")
 		end
 
 		function [rout1,rout2,rout3,xout,Eout] = ReactionsVsX(obj, physics)

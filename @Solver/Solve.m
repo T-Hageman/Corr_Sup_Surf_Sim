@@ -34,7 +34,7 @@ function Solve(obj)
 			else
 				try
 					[L,U] = ilu(B,struct('type','nofill'));
-					dy = gmres(B,d,500,1e-4,5000,L,U);
+					[dy,~] = gmres(B,d,500,1e-4,5000,L,U);
 				catch
 					dy = B\d;
 				end

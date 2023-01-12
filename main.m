@@ -18,7 +18,7 @@ initNaCL = 10^1;	%Concentration Cl- imposed at boundary [mol/m^3]
 initpH = 12;		%initial and boundary pH [-]
 
 Lfrac = 0.5e-2;			%Radius of the corrosion pit [m]
-Lx = Lfrac + 1000e-3;	%Radius of the domain [m]
+Lx = Lfrac + 1000e-3/10;	%Radius of the domain [m] (remove division/10 to replicate results from paper, included here to reduce the domain simulated for the example within the documentation)
 Hfrac = 2e-2;			%depth of the corrosion pit [m]
 Ly = 0.5e-2;			%Height of the domain [m]
 

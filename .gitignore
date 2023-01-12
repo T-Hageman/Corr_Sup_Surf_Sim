@@ -1,2 +1,8 @@
 Results/
 *.asv
+Documentation/main.aux
+Documentation/main.log
+Documentation/main.out
+Documentation/main.spl
+Documentation/main.synctex.gz
+Documentation/main.toc
