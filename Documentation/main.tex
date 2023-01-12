@@ -62,7 +62,10 @@
 \address[2]{International Center of Numerical Methods in Engineering (CIMNE), Madrid 28010, Spain}
 
 \begin{abstract}
-Documentation that accompanies the \textit{MATLAB} code Corr\textunderscore Sup\textunderscore Surf\textunderscore Sim. This documentation explains the usage of the implemented finite element framework, and highlight the main files. If using this module for research or industrial purposes, please cite: \citeMe{}.
+\begin{center}
+\includegraphics[width=12cm]{../Figures/Domain.png}
+\end{center}
+Documentation that accompanies the \textit{MATLAB} code \href{https://github.com/T-Hageman/Corr_Sup_Surf_Sim}{Corr\textunderscore Sup\textunderscore Surf\textunderscore Sim}. This documentation explains the usage of the implemented finite element framework, and highlight the main files. If using this module for research or industrial purposes, please cite: \citeMe{}.
 \end{abstract}
 
 \begin{keyword}
@@ -83,8 +86,8 @@ For simulating the model as provided, running the function "main.m" performs all
 The code is set up in a object-oriented manner, defining matlab classes for each sub-component and providing their accompanying methods. As a result, a clear distinction is made between different components, and each can be used and altered with limited/no impact on other components. Here, the different classes are described. The commenting style employed within the code is compatible with the matlab help function, as such information about all usable methods within a class can be accessed by including the relevant folders, and typing, for instance, "help Solver" to print all variables contained within and all function available from the solver. 
 
 \subsection{main.m}
-This is the main file, from which all classes are constructed and the actual simulation is performed. Within it, all properties used within other classes are defined as inputs, for instance for the linear-elastic description of the solid domain:
-\lstinputlisting[firstnumber=59,firstline=59,lastline=63,style=mystyle,title=main.m]{../main.m}
+This is the main file, from which all classes are constructed and the actual simulation is performed. Within it, all properties used within other classes are defined as inputs, for instance for the description of the electrolyte:
+\lstinputlisting[firstnumber=71,firstline=71,lastline=80,style=mystyle,title=main.m]{../main.m}
 where "physics{\_}in" is the array of options (in this case, physical models) passed to the physics object at construction. 
 
 The actual time-dependent simulations are also performed within this file:
@@ -97,14 +100,14 @@ The files included within the Models folder form the main implementation of all 
 
 \subsubsection{BaseModel}
 This is an empty model, inherited by all other models to provide consistency within the available functions. While empty within here, the potential functions that can be defined within other models include assembling the system matrix and force vector:
-\lstinputlisting[firstnumber=26,firstline=26,lastline=26,style=mystyle,title=Models/@BaseModel/BaseModel.m]{../Models/@BaseModel/BaseModel.m}
+\lstinputlisting[firstnumber=27,firstline=27,lastline=27,style=mystyle,title=Models/@BaseModel/BaseModel.m]{../Models/@BaseModel/BaseModel.m}
 , and committing history dependent or path dependent variables:
-\lstinputlisting[firstnumber=13,firstline=13,lastline=13,style=mystyle]{../Models/@BaseModel/BaseModel.m}
+\lstinputlisting[firstnumber=14,firstline=14,lastline=14,style=mystyle]{../Models/@BaseModel/BaseModel.m}
 where the keyword "commit{\_}type" indicates the type of history or path dependence to commit at the current point. 
 
 \subsubsection{Constrainer}
 This model is used to apply fixed boundary constraints to a degree of freedom at a set location. Within the main file, the inputs required are:
-\lstinputlisting[firstnumber=72,firstline=72,lastline=75,style=mystyle,title=main.m]{../main.m}
+\lstinputlisting[firstnumber=116,firstline=116,lastline=119,style=mystyle,title=main.m]{../main.m}
 and multiple definitions of this model are allowed, allowing for constraints to be applied to several element groups. These constraints are integrated within the tangential matrix and force vector through  allocation matrices $\bm{C}_{con}$ and $\bm{C}_{uncon}$, reordering the system into a constrained and unconstrained part. This allows the constrained system to be solved as:
 \begin{equation}
 	\bm{C}_{uncon}^T \bm{K} \bm{C}_{uncon} \mathbf{y} = -\left(\bm{C}_{uncon}^T\bm{f}+\bm{C}_{uncon}^T \bm{K} \bm{C}_{con}\mathbf{c}\right)
@@ -114,12 +117,16 @@ with the values of the boundary constraints contained in the vector $\mathbf{c}$
 	\mathbf{x}^{new} = \mathbf{x}^{old} + \bm{C}_{uncon}\mathbf{y} + \bm{C}_{con}\mathbf{c}
 \end{equation}
 
+\subsubsection{OxygenLimiter}
+Similar to the "constrainer" model detailed in the previous section, but also accepts a time up to which the constraints are applied. After this time is reached, no further constraints are applied by this model. Required input properties to be defined:
+\lstinputlisting[firstnumber=103,firstline=103,lastline=107,style=mystyle,title=main.m]{../main.m}
+
 \subsubsection{Electrolyte}
 The electrolyte model implements the Nernst-Planck mass balance:
 \begin{equation}
     \dot{C}_{\pi}+\bm{\nabla}\cdot\left(-D_\pi \bm{\nabla}C_\pi\right) + \frac{z_\pi F}{RT} \bm{\nabla} \cdot \left(-D_\pi C_\pi \bm{\nabla} \varphi\right) +R_\pi = 0 
 \end{equation}
-for the ionic species and their name within the model file: $\mathrm{H}^+$ ("H"), $\mathrm{OH}^-$ ("OH"), $\mathrm{Na}^+$ ("Na"), $\mathrm{Cl}^-$ ("Cl", using lower case l; upper case L provides the lattice hydrogen concentration), $\mathrm{Fe}^{2+}$ ("Fe"), and $\mathrm{FeOH}^{+}$ ("FeOH"). Additionally, it implements the electro-neutrality condition:
+for the ionic species and their name within the model file: $\mathrm{H}^+$ ("H"), $\mathrm{OH}^-$ ("OH"), $\mathrm{Na}^+$ ("Na"), $\mathrm{Cl}^-$ ("Cl"), $\mathrm{Fe}^{2+}$ ("Fe"), and $\mathrm{FeOH}^{+}$ ("FeOH"). Additionally, it implements the electro-neutrality condition:
 \begin{equation}
 	\sum z_\pi C_\pi = 0
 \end{equation}
@@ -143,73 +150,49 @@ with reaction rates:
     R_{\mathrm{H}^+,fe}&=k_{fe}C_{\mathrm{Fe}^{2+}}-C_{\mathrm{FeOH}^+}(k_{fe}'C_{\mathrm{H}^+}-k_{feoh}) \label{eq:H_Part2}
 \end{align}
 For this model, the input properties required are:
-\lstinputlisting[firstnumber=92,firstline=92,lastline=100,style=mystyle,title=main.m]{../main.m}
-This model employs a lumped integration scheme when the vector "Lumped" contains true. Details for the implementation of this lumped scheme are given in \cref{sec:LumpedScheme}
+\lstinputlisting[firstnumber=72,firstline=72,lastline=80,style=mystyle,title=main.m]{../main.m}
+This model employs a lumped integration scheme when the vector "Lumped" contains true.
 
 \subsubsection{ElectrolyteInterface}
-Finally, the electrolyteInterface model implements the metal-electrolyte coupling through the surface reactions:
-\begin{alignat}{2}
- \text{Volmer (acid):} && \mathrm{H}^+ + \mathrm{M} + \mathrm{e}^- &\xrightleftharpoons[k_{Va}']{k_{Va}} \mathrm{MH}_{ads} \label{react:1} \\
-  \text{Heyrovsky (acid):} && \qquad \mathrm{H}^+ + \mathrm{e}^- + \mathrm{MH}_{ads}&\xrightleftharpoons[k_{Ha}']{k_{Ha}} \mathrm{M} + \mathrm{H}_2 \label{react:2} \\
-    \text{Volmer (base):} &&  \mathrm{H}_2\mathrm{O} + \mathrm{M} + \mathrm{e}^- &\xrightleftharpoons[k_{Vb}']{k_{Vb}} \mathrm{MH}_{ads} + \mathrm{OH}^- \label{react:5} \\
-   \text{Heyrovsky (base):} && \qquad  \mathrm{H}_2\mathrm{O} + \mathrm{e}^- + \mathrm{MH}_{ads}&\xrightleftharpoons[k_{Hb}']{k_{Hb}} \mathrm{M} + \mathrm{H}_2 + \mathrm{OH}^- \label{react:6} \\
-    \text{Tafel:} && 2 \mathrm{MH}_{ads} &\xrightleftharpoons[k_T']{k_T} 2\mathrm{M} + \mathrm{H}_2 \label{react:3} \\
-   \text{Absorption:} && \mathrm{MH}_{ads} &\xrightleftharpoons[k_A']{k_A} \mathrm{MH}_{abs}  \label{react:4} \\
-   \text{Corrosion:} && \qquad  \mathrm{Fe}^{2+}+2\mathrm{e}^- &\xrightleftharpoons[k_c']{k_c} \mathrm{Fe} \label{react:7}
-\end{alignat}
-with reaction rates:
-\begin{alignat}{4}
-\nonumber && && & \qquad\mathrm{Forward} &&  \qquad\qquad \mathrm{Backward} \\
-    \mathrm{Volmer (acid):} && \quad && \nu_{Va} &= k_{Va} C_{\mathrm{H}^+}(1-\theta_{ads})e^{-\alpha_{Va} \frac{\eta F}{RT}}\qquad
-    && \nu_{Va}' = k_{Va}' \theta_{ads}e^{(1-\alpha_{Va}) \frac{\eta F}{RT}} \label{eq:react1}\\
-    \mathrm{Heyrovsky (acid):} && && \nu_{Ha} &= k_{Ha} C_{\mathrm{H}^+}\theta_{ads}e^{-\alpha_{Ha} \frac{\eta F}{RT}}\qquad
-    && \nu_{Ha}' = k_{Ha}' (1-\theta_{ads}) p_{\mathrm{H}_2} e^{(1-\alpha_{Ha}) \frac{\eta F}{RT}} \label{eq:react2}\\
-    \mathrm{Volmer (base):} && && \nu_{Vb} &= k_{Vb} (1-\theta_{ads})e^{-\alpha_{Vb} \frac{\eta F}{RT}}\qquad
-    && \nu_{Vb}' = k_{Vb}' C_{\mathrm{OH}^-} \theta_{ads}e^{(1-\alpha_{Vb}) \frac{\eta F}{RT}} \label{eq:react5}\\
-    \mathrm{Heyrovsky (base):} && && \nu_{Hb} &= k_{Hb} \theta_{ads}e^{-\alpha_{Hb} \frac{\eta F}{RT}}\qquad
-    && \nu_{Hb}' = k_{Hb}' (1-\theta_{ads}) p_{\mathrm{H}_2} C_{\mathrm{OH}^-} e^{(1-\alpha_{Hb}) \frac{\eta F}{RT}}  \label{eq:react6}\\
-    \mathrm{Tafel:} && && \nu_T &= k_T\left|\theta_{ads}\right|\theta_{ads}\qquad
-    && \nu_T' = k_T' (1-\theta_{ads})p_{\mathrm{H}_2} \label{eq:react3}\\
-    \mathrm{Absorption:} && && \nu_A &= k_A (N_L - C_L)\theta_{ads}\qquad
-    && \nu_A' = k_A' C_L (1-\theta_{ads}) \label{eq:react4}\\
-    \mathrm{Corrosion:} && && \nu_{c} &= k_{c} C_{\mathrm{Fe}^{2+}}e^{-\alpha_{c} \frac{\eta F}{RT}} \qquad && \nu_{c}' = k_{c}' e^{(1-\alpha_{c}) \frac{\eta F}{RT}}   \label{eq:react7}
-\end{alignat}
-These reaction rates are implemented in a separate function from the matrix assembly:
-\lstinputlisting[firstnumber=364,firstline=364,lastline=364,style=mystyle,title=Models/@ElectrolyteInterface/ElectrolyteInterface.m]{../Models/@ElectrolyteInterface/ElectrolyteInterface.m}
-which takes the local hydrogen, hydroxide, and iron concentrations, the surface coverage, electrolyte potential, and interstitial lattice hydrogen concentration. It functions for both the integration-point variables as well as for the nodal values. These reaction rates are integrated through a lumped scheme, with details about this scheme discussed in \cref{sec:LumpedScheme}. In addition to the reaction rates, the electrolyte interface model also resolves the surface mass balance:
+Finally, the electrolyteInterface model implements the metal-electrolyte coupling through the corrosion reaction at the anodic surface:
 \begin{equation}
-    N_{ads} \dot{\theta}_{ads} - (\nu_{Va}-\nu_{Va}') + \nu_{Ha} + 2 \nu_T + (\nu_A-\nu_A') - (\nu_{Vb}-\nu_{Vb}') + \nu_{Hb} = 0
+    \mathrm{Fe}^{2+}+2\mathrm{e}^-\xrightleftharpoons[k_{c}']{k_{c}}\mathrm{Fe}
 \end{equation}
+and the cathodic surface includes oxygen and hydrogen-related reactions:
+\begin{align}
+    \mathrm{O}_2+2\mathrm{H}_2\mathrm{O} +4\mathrm{e}^-\xrightleftharpoons[k_{o}']{k_{o}} 4 \mathrm{OH}^- \\
+    2\mathrm{H}^+ + 2\mathrm{e}^-\xrightleftharpoons[k_{h}']{k_{h}} H_2 
+\end{align}
+It also implements the charge conservation at the surface:
+\begin{equation}
+    \int_\Gamma i_c+i_o+i_h\;\mathrm{d}\Gamma = \int_\Gamma 2F\nu_c + 4F\nu_o + 2F\nu_h \;\mathrm{d}\Gamma= 0
+    \label{eq:current_conservation}
+\end{equation}
+
 For this model, the input variables to define are given as:
-\lstinputlisting[firstnumber=113,firstline=113,lastline=120,style=mystyle,title=main.m]{../main.m}
+\lstinputlisting[firstnumber=83,firstline=83,lastline=93,style=mystyle,title=main.m]{../main.m}
 with the vector "Lumped" allowing for individual interface reactions to be either integrated using a standard Gauss integration scheme (0) or a lumped integration scheme (1). the reaction constants matrix k is defined as:
 \begin{equation}
 	k = \begin{bmatrix} 
-	k_{Va} & k_{Va}' & \alpha_{Va} & E_{eq,Va} \\ 
-	k_{Ha} & k_{Ha}' & \alpha_{Ha} & E_{eq,Ha} \\ 
-	k_{T} & k_{T}' & - & - \\ 
-	k_{A} & k_{A}' & - & - \\ 
-	k_{Vb} & k_{Vb}' & \alpha_{Vb} & E_{eq,Vb} \\ 
-	k_{Hb} & k_{Hb}' & \alpha_{Hb} & E_{eq,Hb} \\ 
 	k_{c} & k_{c}' & \alpha_{c} & E_{eq,c} \\ 
+	k_{h} & k_{h}' & \alpha_{h} & E_{eq,h} \\ 
+	k_{o} & k_{o}' & \alpha_{o} & E_{eq,o} \\ 
 	\end{bmatrix}
 \end{equation}
-with the empty entries not used within the model.
-
 
 \subsection{Mesh}
-This class contains the nodes and elements that describe the geometry, and provides support for evaluating shape functions. Within its implementation, it uses a multi-mesh approach, defining element groups for each entity within the domain (for instance, defining an element group "Metal" for the metal domain composed of surface elements, and defining an element group "Interface" composed of line elements which coincide with the left boundary of the metal and the right boundary of the electrolyte). The geometry of the problem is defined through procedures within the mesh class, specifically within "@Mesh/Geometry{\_}Generator.m":
-%\lstinputlisting[firstnumber=14,firstline=14,lastline=20,style=mystyle,title=@Mesh/Geometry{\_}Generator.m]{../@Mesh/Geometry_Generator.m}
-Defining rectangle R1 to represent the metal domain and rectangle R3 for the electrolyte domain, and adding/substracting circle C1 and rectangle R2 to create the crack geometry. The mesh uses the standard matlab mesh generator "GenerateMesh" to convert this geometric description, allowing for element sizes to be defined:
-%\lstinputlisting[firstnumber=33,firstline=33,lastline=33,style=mystyle]{../@Mesh/Geometry_Generator.m}
+This class contains the nodes and elements that describe the geometry, and provides support for evaluating shape functions. Within its implementation, it uses a multi-mesh approach, defining element groups for each entity within the domain (for instance, defining an element group "Electrolyte" for the electrolyte domain composed of surface elements, and defining an element group "Anode" composed of line elements which coincide with the anodic part of the metal-electrolyte boundary). The geometry of the problem is defined through procedures within the mesh class, specifically within "@Mesh/CorrosionPit{\_}Generator.m":
+\lstinputlisting[firstnumber=27,firstline=27,lastline=30,style=mystyle,title=@Mesh/CorrosionPit{\_}Generator.m]{../@Mesh/CorrosionPit_Generator.m}
+Defining rectangle R1 to represent the outer part of the domain and rectangle R2 for the pit. The mesh uses the standard matlab mesh generator "GenerateMesh" to convert this geometric description, allowing for element sizes to be defined:
+\lstinputlisting[firstnumber=42,firstline=42,lastline=44,style=mystyle]{../@Mesh/CorrosionPit_Generator.m}
 which allows for defining minimum element sizes through Hedge, and maximum sizes through Hmax. 
 
 The mesh class also provides a direct interface from which to get the element shape functions, providing an element group number and the index of the element itself:
-%\lstinputlisting[firstnumber=20,firstline=20,lastline=21,style=mystyle,title=@Mesh/mesh.m]{../@Mesh/Mesh.m}
-which returns a matrix containing the shape functions N within all integration points of the element, gradients of the shape function G, and the integration weights for all integration points w. Additionally, for the construction of the hydrogen diffusion model, the second-order gradients G2 are provided through a separate function.
+\lstinputlisting[firstnumber=20,firstline=20,lastline=21,style=mystyle,title=@Mesh/mesh.m]{../@Mesh/Mesh.m}
+which returns a matrix containing the shape functions N within all integration points of the element, gradients of the shape function G, and the integration weights for all integration points w. 
 
 \subsection{Shapes}
-The classes within this folder provide basic shape functions, and are used by the mesh to provide shape functions and integration weights. The included shape functions are square Lagrangian and triangular Bernstein surface elements (Q9 and T6), quadratic Lagrangian and Bernstein line elements (L3 and L3B), and interface elements (LI6, unused).
+The classes within this folder provide basic shape functions, and are used by the mesh to provide shape functions and integration weights. The included shape functions are square Lagrangian and triangular Bernstein surface elements (Q9 and T6) and quadratic Lagrangian and Bernstein line elements (L3 and L3B).
 
 \subsection{Physics}
 This class provides all the support required for constructing and managing state and force vectors, tangential matrices, and boundary constraints. Most notably, during its initialization it generates an array of all the physical models, from which it then is able to construct the tangential matrix when required:
@@ -218,7 +201,7 @@ This calls each of the models, and passes a handle to the physics object itself 
 
 The physics class also provides the ability for post-processing the results through the function;
 \lstinputlisting[firstnumber=25,firstline=25,lastline=25,style=mystyle,title=@Physics/Physics.m]{../@Physics/Physics.m}
-This function requires the name of a degree of freedom (for instance "dx" for the horizontal displacements, or "H" for the hydrogen ion concentration), a scale to indicate whether the mesh is plotted in deformed (scale$>$0) or undeformed (scale$=$0) configuration, and the name of an element group on which to plot the results ("Metal" for the metal domain, "Electrolyte" for the electrolyte, and "Interface" for the metal-electrolyte interface.
+This function requires the name of a degree of freedom (for instance "H" for the hydrogen ion concentration), a scale to indicate whether the mesh is plotted in deformed (scale$>$0) or undeformed (scale$=$0) configuration (for the simulations performed, this is always $0$, since no solid deformations are simulated), and the name of an element group on which to plot the results ("Electrolyte", and "Anode"/"Cathode" for the metal-electrolyte interface.
 
 \subsection{Dofspace}
 This class converts the node numbering and degree of freedom type to an index for the degree of freedom, corresponding to its location within the unconstrained state vector and tangential matrix. Specific types of degree of freedom are registered through a string indicating their name:
@@ -229,12 +212,21 @@ These functions automatically check for duplicates, such that each model can saf
 \lstinputlisting[firstnumber=82,firstline=82,lastline=82,style=mystyle]{../@DofSpace/DofSpace.m}
 
 \subsection{Solver}
-The solver class implements a Newton-Raphson type nonlinear solver, including the ability to perform linear line-searches to improve the convergence rate and stability. During its creation, it gets linked to the physics object, such that it can automatically request updated tangential matrices. To obtain a solution for the linearised system, a sparse direct solver is used in conjunction with a preconditioner:
+The solver class implements a Newton-Raphson type nonlinear solver, including the ability to perform linear line-searches to improve the convergence rate and stability. During its creation, it gets linked to the physics object, such that it can automatically request updated tangential matrices. To obtain a solution for the linearised system, a sparse iterative solver is used (with as back-up option a direct solver) in conjunction with a preconditioner:
 \lstinputlisting[firstnumber=21,firstline=21,lastline=43,style=mystyle,title=@Solver/Solve.m]{../@Solver/Solve.m}
 in which the equilibriate preconditioner greatly decreases the conditioning number of the matrix, thereby reducing errors during the solving process. 
 
-
 \section{Sample results}
-\todo{Sample results}
+Simulating the pencil electrode case as set up within "main.m" (equivalent to the case described in Sec. 4 from \citeMe{}, except for a smaller domain radius) automatically opens figures showing the results as the simulation proceeds. These results can also be obtained after it finishes. Results shown during the simulation are:
+\lstinputlisting[firstnumber=277,firstline=277,lastline=279,style=mystyle,title=main.m]{../main.m}
+\begin{center}
+\includegraphics[width=12cm]{../Figures/Surfs.jpg}
+\end{center}
+which displays the pH, concentrations of $\mathrm{FeOH}^+$ ions and oxygen, and the electrolyte potential $\varphi$ at the current time (or, if done during post-processing, at the time the datafile was saved). Additionally, reaction rates can be obtained through
+\lstinputlisting[firstnumber=272,firstline=272,lastline=274,style=mystyle,title=main.m]{../main.m}
+\begin{center}
+\includegraphics[width=12cm]{../Figures/Rates.jpg}
+\end{center}
+Showing the local reaction rates for the corrosion, hydrogen, and oxygen reactions, using the convention of possitive signs being electron-consuming, while negative signs indicate the electron-producing direction of the reactions. Additionally, the electric overpotential is shown at the interface.
 
 \end{document}
