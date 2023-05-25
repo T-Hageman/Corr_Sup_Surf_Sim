@@ -424,7 +424,7 @@ classdef ElectrolyteInterface < BaseModel
 			%Overpotential
 			subplot(2,2,4)
 			fill3(X',Y',Eplot',Eplot','FaceColor','interp','EdgeColor','interp','LineWidth',3);
-			title("\E_m-\varphi")
+			title("$E_m-\varphi$",'Interpreter','latex')
 			view(2)
 			hold on
 			colorbar

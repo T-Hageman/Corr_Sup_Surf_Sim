@@ -1,9 +1,13 @@
-% Finite element simulation code accompanying XXX 
+% Finite element simulation code accompanying T. Hageman, C. Andrade & 
+% E. Martínez-Pañeda, Corrosion rates under charge-conservation conditions. 
+% Electrochimica Acta (2023) 
+%
 % This performs the simulation of a pencil-electrode test, under the 
 % assumption that the metal is isolated from current sources. As such,
 % the anodic corrosion reaction is restricted by the electron consumption 
 % of the cathodic reactions. If this code is used, either directly or after 
-% modification, please cite XXX in any resulting research. 
+% modification, please cite https://doi.org/10.1016/j.electacta.2023.142624 
+% in any resulting research. 
 %
 % Usage: Set the parameters for the case being considered within this file,
 % main.m, and run this file. Other functions contained within this code are
@@ -14,7 +18,7 @@ close all; clear all; clc
 
 %% Varied parameters
 initO2 = 0.25;		%initial and boundary oxygen concentration [mol/m^3]
-initNaCL = 10^1;	%Concentration Cl- imposed at boundary [mol/m^3]
+initNaCL = 10^2;	%Concentration Cl- imposed at boundary [mol/m^3]
 initpH = 12;		%initial and boundary pH [-]
 
 Lfrac = 0.5e-2;			%Radius of the corrosion pit [m]
@@ -22,7 +26,7 @@ Lx = Lfrac + 1000e-3/10;	%Radius of the domain [m] (remove division/10 to replic
 Hfrac = 2e-2;			%depth of the corrosion pit [m]
 Ly = 0.5e-2;			%Height of the domain [m]
 
-OxLim = false;		%Flag to indicate if the oxygen boundary condition is altered within the simulations
+OxLim = true;		%Flag to indicate if the oxygen boundary condition is altered within the simulations
 
 %% set folder for saving results
 savefolder = "./Results";
@@ -125,7 +129,7 @@ if restart == false
 
 
 	%solver inputs
-	solver_in.maxIt = 100;	%max number of nonlinear iterations per time increment
+	solver_in.maxIt = 20;	%max number of nonlinear iterations per time increment
 	solver_in.Conv = 1e-4;	%Relative convergence criterion used
 	solver_in.tiny = 1e-10;	%Absolute convergence criterion used
 	solver_in.linesearch = true;	%Use a linear line-search during solution procedure
@@ -216,21 +220,6 @@ function plotres(physics, tvec, I_an_vec, I_cat_H_vec, I_cat_O_vec, Em_vec)
         physics.PlotNodal("O2",-1, "Electrolyte");
         title("O_2")
 		colorbar
-	
-	%total reaction currents and metal potential
-	subplot(3,3,4)
-		yyaxis left
-		plot(tvec/3600, I_an_vec)
-		hold on
-		plot(tvec/3600, I_cat_H_vec)
-		plot(tvec/3600, I_cat_O_vec)
-		legend('Fe','H','O')
-		xlabel('t [hours]')
-		ylabel('$I_{anode} \;[A]$','Interpreter','latex')
-		yyaxis right
-		plot(tvec/3600, Em_vec)
-		xlabel('t [hours]')
-		ylabel('$E_m [V_{SHE}]$','Interpreter','latex')	
 
 	%FeOH+ concentration
 	subplot(3,3,3)
@@ -267,6 +256,22 @@ function plotres(physics, tvec, I_an_vec, I_cat_H_vec, I_cat_O_vec, Em_vec)
         physics.PlotNodal("OH",-1, "Electrolyte");
         title("OH^-")
 		colorbar
+	
+	%total reaction currents and metal potential
+	figure(45)
+		clf
+		yyaxis left
+		plot(tvec/3600, I_an_vec)
+		hold on
+		plot(tvec/3600, I_cat_H_vec)
+		plot(tvec/3600, I_cat_O_vec)
+		xlabel('t [hours]')
+		ylabel('$I_{anode} \;[A]$','Interpreter','latex')
+		yyaxis right
+		plot(tvec/3600, Em_vec)
+		xlabel('t [hours]')
+		ylabel('$E_m [V_{SHE}]$','Interpreter','latex')	
+		legend('Corrosion','Hydrogen','Oxygen','Metal Potential')
 
 	%Surface reaction rates
  	figure(44)

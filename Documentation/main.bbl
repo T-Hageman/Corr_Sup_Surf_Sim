@@ -1,0 +1,71 @@
+\begin{thebibliography}{10}
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\expandafter\ifx\csname href\endcsname\relax
+  \def\href#1#2{#2} \def\path#1{#1}\fi
+
+\bibitem{Hageman2023}
+T.~Hageman, C.~Andrade, E.~Mart{\'{i}}nez-Pa{\~{n}}eda, {Corrosion rates under
+  charge-conservation conditions}, Electrochimica Acta (2023) 142624
+
+\bibitem{Galvele1976}
+J.~R. Galvele, {Transport Processes and the Mechanism of Pitting of Metals},
+  Journal of The Electrochemical Society 123~(4) (1976) 464--474.
+\newblock
+
+\bibitem{Gravano1984}
+S.~Gravano, J.~Galvele, {Transport processes in passivity breakdown—III. Full
+  hydrolysis plus ion migration plus buffers}, Corrosion Science 24~(6) (1984)
+  517--534.
+\newblock
+
+\bibitem{Sun2021}
+X.~Sun, J.~Srinivasan, R.~G. Kelly, R.~Duddu, {Numerical investigation of
+  critical electrochemical factors for pitting corrosion using a multi-species
+  reactive transport model}, Corrosion Science 179~(November 2020) (2021)
+  109130.
+\newblock
+
+\bibitem{Laycock2001}
+N.~J. Laycock, S.~P. White, {Computer Simulation of Single Pit Propagation in
+  Stainless Steel under Potentiostatic Control}, Journal of The Electrochemical
+  Society 148~(7) (2001) B264.
+\newblock
+
+\bibitem{Mai2016}
+W.~Mai, S.~Soghrati, R.~G. Buchheit, {A phase field model for simulating the
+  pitting corrosion}, Corrosion Science 110 (2016) 157--166.
+\newblock
+
+\bibitem{Nguyen2022}
+V.~A. Nguyen, R.~C. Newman, N.~J. Laycock, {2-Dimensional Simulations of Pit
+  Propagation and Multi-Pit Interactions}, Journal of The Electrochemical
+  Society 169~(8) (2022) 081503.
+\newblock
+
+\bibitem{Li2020}
+Y.~Li, Z.~Liu, W.~Wu, X.~Li, J.~Zhao, {Crack growth behaviour of E690 steel in
+  artificial seawater with various pH values}, Corrosion Science 164~(November
+  2019) (2020) 108336.
+\newblock
+
+\bibitem{Feldberg2000}
+S.~W. Feldberg, {On the dilemma of the use of the electroneutrality constraint
+  in electrochemical calculations}, Electrochemistry Communications 2~(7)
+  (2000) 453--456.
+\newblock
+
+\bibitem{Sarkar2011}
+S.~Sarkar, W.~Aquino, {Electroneutrality and ionic interactions in the modeling
+  of mass transport in dilute electrochemical systems}, Electrochimica Acta
+  56~(24) (2011) 8969--8978.
+\newblock
+
+\bibitem{Hageman2023Lumped}
+T.~Hageman, E.~Mart{\'{i}}nez-Pa{\~{n}}eda, {Stabilising Effects of Lumped
+  Integration Schemes for the Simulation of Metal-Electrolyte Reactions},
+  Journal of The Electrochemical Society 170~(2) (2023) 021511.
+\newblock
+
+\end{thebibliography}

@@ -15,6 +15,9 @@
 \usepackage[autostyle]{csquotes}
 \MakeOuterQuote{"}
 
+\biboptions{sort&compress}
+\bibliographystyle{elsarticle-num}
+
 % slightly altering rules for figure placement to prevent full-page figures
 \usepackage{placeins}
 \renewcommand{\floatpagefraction}{.90}
@@ -45,7 +48,7 @@
 	autogobble=true
 }
 
-\newcommand{\citeMe}{\href{DOI HERE}{T. Hageman \& C. Andrade \& E. Martínez-Pañeda, Determination of corrosion rates under charge-conservation conditions with a supporting surface through numerical simulation. Journal of XXXXX (2023)}}
+\newcommand{\citeMe}{\href{https://doi.org/10.1016/j.electacta.2023.142624}{T. Hageman \& C. Andrade \& E. Martínez-Pañeda, Corrosion rates under charge-conservation conditions. Electrochimica Acta (2023)} \citep{Hageman2023}}
 
 \begin{document}
 
@@ -65,7 +68,7 @@
 \begin{center}
 \includegraphics[width=12cm]{../Figures/Domain.png}
 \end{center}
-Documentation that accompanies the \textit{MATLAB} code \href{https://github.com/T-Hageman/Corr_Sup_Surf_Sim}{Corr\textunderscore Sup\textunderscore Surf\textunderscore Sim}. This documentation explains the usage of the implemented finite element framework, and highlight the main files. If using this module for research or industrial purposes, please cite: \citeMe{}.
+Documentation that accompanies the \textit{MATLAB} code \href{https://github.com/T-Hageman/Corr_Sup_Surf_Sim}{Corr\textunderscore Sup\textunderscore Surf\textunderscore Sim (available here)}, which enables the simulation of natural corrosion under charge conservation conditions. This documentation explains the usage of the implemented finite element framework, and highlight the main files. If using this module for research or industrial purposes, please cite: \citeMe{}.
 \end{abstract}
 
 \begin{keyword}
@@ -77,22 +80,22 @@ MATLAB, electrochemistry, finite element method, charge conservation, corrosion
 \tableofcontents
 
 \section{Introduction}
-\todo{Intro}
+While localised corrosion is responsible for many catastrophic failures, the corrosion process itself is difficult to predict \citep{Galvele1976}. Both lab experiments and numerical simulations commonly prescribe the electric potential of the metal, to accelerate experimental procedures or match simulation to experiments \citep{Gravano1984, Sun2021, Laycock2001, Mai2016, Nguyen2022, Li2020}. However, for most cases of natural corrosion no potential is prescribed, instead requiring the corroding metal to be self-sufficient. This "self-sufficiency" requires the electrons produced by anodic corrosion reaction to be directly consumed by counteracting cathodic reactions. The simulation framework presented here, and described in \citep{Hageman2023}, enables corrosion simulation under these self-sufficiency conditions by dynamically resolving the metal potential to balance the cathodic and anodic currents. 
 
 \subsection{Basic usage}
-For simulating the model as provided, running the function "main.m" performs all required actions: It automatically generates the geometry and mesh, initialises all simulation components, and prints outputs to the screen and saves them to a folder within results. Simple changes, e.g. editing parameters, can be done within main.m without requiring altering other files. 
+For simulating the model as provided, running the function "main.m" performs all required actions: It automatically generates the geometry and mesh, initialises all simulation components, and prints outputs to the screen and saves them to a folder within results. Simple changes, e.g. editing geometric and reaction parameters, can be done within main.m without requiring altering other files. 
 
 \section{Summary of included files}
 The code is set up in a object-oriented manner, defining matlab classes for each sub-component and providing their accompanying methods. As a result, a clear distinction is made between different components, and each can be used and altered with limited/no impact on other components. Here, the different classes are described. The commenting style employed within the code is compatible with the matlab help function, as such information about all usable methods within a class can be accessed by including the relevant folders, and typing, for instance, "help Solver" to print all variables contained within and all function available from the solver. 
 
 \subsection{main.m}
 This is the main file, from which all classes are constructed and the actual simulation is performed. Within it, all properties used within other classes are defined as inputs, for instance for the description of the electrolyte:
-\lstinputlisting[firstnumber=71,firstline=71,lastline=80,style=mystyle,title=main.m]{../main.m}
+\lstinputlisting[firstnumber=75,firstline=75,lastline=84,style=mystyle,title=main.m]{../main.m}
 where "physics{\_}in" is the array of options (in this case, physical models) passed to the physics object at construction. 
 
 The actual time-dependent simulations are also performed within this file:
-\lstinputlisting[firstnumber=164,firstline=164,lastline=171,style=mystyle,title=main.m]{../main.m}
-\lstinputlisting[firstnumber=191,firstline=191,lastline=194,style=mystyle]{../main.m}
+\lstinputlisting[firstnumber=169,firstline=169,lastline=177,style=mystyle,title=main.m]{../main.m}
+\lstinputlisting[firstnumber=195,firstline=195,lastline=198,style=mystyle]{../main.m}
 Notably, while this performs the time-stepping scheme and controls the time increment size and termination of the simulations, it does not by itself solve anything, instead calling the "solver.Solve()" function which performs a Newton-Raphson procedure using the parameters used to initialize the class, and once the current timestep is converged returns to the main code.
 
 \subsection{Models}
@@ -107,7 +110,7 @@ where the keyword "commit{\_}type" indicates the type of history or path depende
 
 \subsubsection{Constrainer}
 This model is used to apply fixed boundary constraints to a degree of freedom at a set location. Within the main file, the inputs required are:
-\lstinputlisting[firstnumber=116,firstline=116,lastline=119,style=mystyle,title=main.m]{../main.m}
+\lstinputlisting[firstnumber=119,firstline=119,lastline=123,style=mystyle,title=main.m]{../main.m}
 and multiple definitions of this model are allowed, allowing for constraints to be applied to several element groups. These constraints are integrated within the tangential matrix and force vector through  allocation matrices $\bm{C}_{con}$ and $\bm{C}_{uncon}$, reordering the system into a constrained and unconstrained part. This allows the constrained system to be solved as:
 \begin{equation}
 	\bm{C}_{uncon}^T \bm{K} \bm{C}_{uncon} \mathbf{y} = -\left(\bm{C}_{uncon}^T\bm{f}+\bm{C}_{uncon}^T \bm{K} \bm{C}_{con}\mathbf{c}\right)
@@ -119,14 +122,14 @@ with the values of the boundary constraints contained in the vector $\mathbf{c}$
 
 \subsubsection{OxygenLimiter}
 Similar to the "constrainer" model detailed in the previous section, but also accepts a time up to which the constraints are applied. After this time is reached, no further constraints are applied by this model. Required input properties to be defined:
-\lstinputlisting[firstnumber=103,firstline=103,lastline=107,style=mystyle,title=main.m]{../main.m}
+\lstinputlisting[firstnumber=105,firstline=105,lastline=111,style=mystyle,title=main.m]{../main.m}
 
 \subsubsection{Electrolyte}
 The electrolyte model implements the Nernst-Planck mass balance:
 \begin{equation}
     \dot{C}_{\pi}+\bm{\nabla}\cdot\left(-D_\pi \bm{\nabla}C_\pi\right) + \frac{z_\pi F}{RT} \bm{\nabla} \cdot \left(-D_\pi C_\pi \bm{\nabla} \varphi\right) +R_\pi = 0 
 \end{equation}
-for the ionic species and their name within the model file: $\mathrm{H}^+$ ("H"), $\mathrm{OH}^-$ ("OH"), $\mathrm{Na}^+$ ("Na"), $\mathrm{Cl}^-$ ("Cl"), $\mathrm{Fe}^{2+}$ ("Fe"), and $\mathrm{FeOH}^{+}$ ("FeOH"). Additionally, it implements the electro-neutrality condition:
+for the ionic species and their name within the model file: $\mathrm{H}^+$ ("H"), $\mathrm{OH}^-$ ("OH"), $\mathrm{Na}^+$ ("Na"), $\mathrm{Cl}^-$ ("Cl"), $\mathrm{Fe}^{2+}$ ("Fe"), and $\mathrm{FeOH}^{+}$ ("FeOH"). Additionally, it implements the electro-neutrality condition \citep{Feldberg2000, Sarkar2011}:
 \begin{equation}
 	\sum z_\pi C_\pi = 0
 \end{equation}
@@ -150,8 +153,8 @@ with reaction rates:
     R_{\mathrm{H}^+,fe}&=k_{fe}C_{\mathrm{Fe}^{2+}}-C_{\mathrm{FeOH}^+}(k_{fe}'C_{\mathrm{H}^+}-k_{feoh}) \label{eq:H_Part2}
 \end{align}
 For this model, the input properties required are:
-\lstinputlisting[firstnumber=72,firstline=72,lastline=80,style=mystyle,title=main.m]{../main.m}
-This model employs a lumped integration scheme when the vector "Lumped" contains true.
+\lstinputlisting[firstnumber=75,firstline=75,lastline=84,style=mystyle,title=main.m]{../main.m}
+This model employs a lumped integration scheme when the vector "Lumped" contains true \citep{Hageman2023Lumped}.
 
 \subsubsection{ElectrolyteInterface}
 Finally, the electrolyteInterface model implements the metal-electrolyte coupling through the corrosion reaction at the anodic surface:
@@ -170,7 +173,7 @@ It also implements the charge conservation at the surface:
 \end{equation}
 
 For this model, the input variables to define are given as:
-\lstinputlisting[firstnumber=83,firstline=83,lastline=93,style=mystyle,title=main.m]{../main.m}
+\lstinputlisting[firstnumber=86,firstline=86,lastline=97,style=mystyle,title=main.m]{../main.m}
 with the vector "Lumped" allowing for individual interface reactions to be either integrated using a standard Gauss integration scheme (0) or a lumped integration scheme (1). the reaction constants matrix k is defined as:
 \begin{equation}
 	k = \begin{bmatrix} 
@@ -218,15 +221,22 @@ in which the equilibriate preconditioner greatly decreases the conditioning numb
 
 \section{Sample results}
 Simulating the pencil electrode case as set up within "main.m" (equivalent to the case described in Sec. 4 from \citeMe{}, except for a smaller domain radius) automatically opens figures showing the results as the simulation proceeds. These results can also be obtained after it finishes. Results shown during the simulation are:
-\lstinputlisting[firstnumber=277,firstline=277,lastline=279,style=mystyle,title=main.m]{../main.m}
+\lstinputlisting[firstnumber=284,firstline=284,lastline=284,style=mystyle,title=main.m]{../main.m}
 \begin{center}
 \includegraphics[width=12cm]{../Figures/Surfs.jpg}
 \end{center}
 which displays the pH, concentrations of $\mathrm{FeOH}^+$ ions and oxygen, and the electrolyte potential $\varphi$ at the current time (or, if done during post-processing, at the time the datafile was saved). Additionally, reaction rates can be obtained through
-\lstinputlisting[firstnumber=272,firstline=272,lastline=274,style=mystyle,title=main.m]{../main.m}
+\lstinputlisting[firstnumber=279,firstline=279,lastline=279,style=mystyle,title=main.m]{../main.m}
 \begin{center}
 \includegraphics[width=12cm]{../Figures/Rates.jpg}
 \end{center}
 Showing the local reaction rates for the corrosion, hydrogen, and oxygen reactions, using the convention of possitive signs being electron-consuming, while negative signs indicate the electron-producing direction of the reactions. Additionally, the electric overpotential is shown at the interface.
+
+Finally, temporal results are saved during the simulation via:
+\lstinputlisting[firstnumber=261,firstline=261,lastline=274,style=mystyle,title=main.m]{../main.m}
+and plotted as
+
+
+\bibliography{references}
 
 \end{document}
