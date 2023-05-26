@@ -29,12 +29,12 @@ function Solve(obj)
             d = -R*P*obj.physics.fint;
             B = R*P*obj.physics.K*C;
 
-			if false
+			if true
 				dy = B\d;
 			else
 				try
 					[L,U] = ilu(B,struct('type','nofill'));
-					[dy,~] = gmres(B,d,500,1e-4,5000,L,U);
+					[dy,~] = gmres(B,d,50,1e-4,500,L,U);
 				catch
 					dy = B\d;
 				end

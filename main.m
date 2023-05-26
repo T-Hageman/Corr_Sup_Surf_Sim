@@ -131,7 +131,7 @@ if restart == false
 	%solver inputs
 	solver_in.maxIt = 20;	%max number of nonlinear iterations per time increment
 	solver_in.Conv = 1e-4;	%Relative convergence criterion used
-	solver_in.tiny = 1e-10;	%Absolute convergence criterion used
+	solver_in.tiny = 1e-8;	%Absolute convergence criterion used
 	solver_in.linesearch = true;	%Use a linear line-search during solution procedure
 	solver_in.linesearchLims = [0.1 1]; %limits to perform linesearch within
 
@@ -148,7 +148,7 @@ if restart == false
 	%time stepping
 	dt = 30;
 	n_max = 1000*24*360;
-	tmax = 60*60*24*100;
+	tmax = 60*60*120;
 	startstep = 1;
 
 	%Initialization of vectors to save temporal data to
